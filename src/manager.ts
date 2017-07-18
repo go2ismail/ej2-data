@@ -196,6 +196,7 @@ export class DataManager {
         if (query.requiresCounts) {
             args.result = result.result;
             args.count = result.count;
+            args.aggregates = result.aggregates;
         } else {
             args.result = result;
         }
