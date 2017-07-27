@@ -28,3 +28,6 @@ To test the source files, use the below command
 ```
 npm run test
 ```
+## Changelog
+
+Check the changelog [here](https://github.com/syncfusion/ej2-data/blob/master/CHANGELOG.md)
