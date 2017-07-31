@@ -1265,12 +1265,12 @@ export class ODataV4Adaptor extends ODataAdaptor {
      * @param  {Predicate} pred
      * @param  {boolean} requiresCast?
      */
-    public onPredicate(predicate: Predicate, requiresCast?: boolean): string {
+    public onPredicate(predicate: Predicate, query: Query | boolean, requiresCast?: boolean): string {
         let returnValue: string = '';
         let val: string | number | Date | boolean | Predicate | Predicate[] = predicate.value;
         let isDate: boolean = val instanceof Date;
 
-        returnValue = super.onPredicate.call(this, predicate, requiresCast);
+        returnValue = super.onPredicate.call(this, predicate, query, requiresCast);
 
         if (isDate) {
             returnValue = returnValue.replace(/datetime'(.*)'$/, '$1');
