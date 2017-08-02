@@ -1,6 +1,6 @@
 import { Ajax } from '@syncfusion/ej2-base';
 import { extend, isNullOrUndefined } from '@syncfusion/ej2-base/util';
-import { DataUtil, Aggregates } from './util';
+import { DataUtil, Aggregates, Group } from './util';
 import { Query } from './query';
 import { ODataAdaptor, JsonAdaptor, CacheAdaptor, RemoteSaveAdaptor } from './adaptors';
 /**
@@ -81,7 +81,7 @@ export class DataManager {
 
         if (data.url && data.offline && !data.json.length) {
             this.isDataAvailable = false;
-            this.adaptor = adaptor || new ODataAdaptor();
+            this.adaptor = <AdaptorOptions>adaptor || new ODataAdaptor();
             this.dataSource.offline = false;
             this.ready = this.executeQuery(query || new Query());
             this.ready.then((e: ReturnOption) => {
@@ -96,7 +96,7 @@ export class DataManager {
         if (!data.jsonp && this.adaptor instanceof ODataAdaptor) {
             data.jsonp = 'callback';
         }
-        this.adaptor = adaptor || this.adaptor;
+        this.adaptor = <AdaptorOptions>adaptor || this.adaptor;
         if (data.enableCaching) {
             this.adaptor = new CacheAdaptor(<CacheAdaptor>this.adaptor, data.timeTillExpiration, data.cachingPageSize);
         }
@@ -136,14 +136,14 @@ export class DataManager {
                 <[{ [key: string]: Object[] }]>result;
 
             if (lookup && lookup instanceof Array) {
-                DataUtil.buildHierarchy(query.subQuery.fKey, from, res, lookup, query.subQuery.key);
+                DataUtil.buildHierarchy(query.subQuery.fKey, from, res as Group, lookup as Group, query.subQuery.key);
             }
 
             for (let j: number = 0; j < res.length; j++) {
                 if (res[j][from] instanceof Array) {
                     res[j] = extend({}, {}, res[j]) as { [key: string]: Object[] };
                     res[j][from] = this.adaptor.processResponse(
-                        query.subQuery.using(new DataManager(res[j][from].slice(0))).executeLocal(),
+                        query.subQuery.using(new DataManager(res[j][from].slice(0)as JSON[])).executeLocal(),
                         this, query);
                 }
             }
@@ -185,12 +185,12 @@ export class DataManager {
             DataManager.nextTick(
                 () => {
                     let res: Object[] = this.executeLocal(<Query>query);
-                    args = DataManager.getDeferedArgs(<Query>query, res, args);
+                    args = DataManager.getDeferedArgs(<Query>query, res as ReturnOption, args as ReturnOption);
                     deffered.resolve(args);
                 });
         }
 
-        return deffered.promise;
+        return deffered.promise as Promise<Ajax>;
     }
     private static getDeferedArgs(query: Query, result: ReturnOption, args?: ReturnOption): Object {
         if (query.requiresCounts) {
@@ -247,7 +247,8 @@ export class DataManager {
                 subDeffer.then(
                     (subData: { count: number, xhr: XMLHttpRequest }) => {
                         if (data) {
-                            DataUtil.buildHierarchy(query.subQuery.fKey, query.subQuery.fromTable, data, subData, query.subQuery.key);
+                            DataUtil.buildHierarchy(query.subQuery.fKey, query.subQuery.fromTable, data as Group,
+                                                    subData as Group, query.subQuery.key);
                             process(data, subData.count, subData.xhr);
                         }
                     },
@@ -477,7 +478,7 @@ export class DataManager {
         };
         ajax.send();
 
-        return defer.promise;
+        return defer.promise as Promise<Ajax>;
     }
 }
 

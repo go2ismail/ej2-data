@@ -317,7 +317,7 @@ export class DataUtil {
          * @param  {string} field
          */
         truecount: (ds: Object[], field: string): number => {
-            return new DataManager(ds).executeLocal(new Query().where(field, 'equal', true, true)).length;
+            return new DataManager(ds as JSON[]).executeLocal(new Query().where(field, 'equal', true, true)).length;
         },
         /**
          * Returns the total number of false value present in the data based on the given boolean field name.
@@ -325,7 +325,7 @@ export class DataUtil {
          * @param  {string} field
          */
         falsecount: (ds: Object[], field: string): number => {
-            return new DataManager(ds).executeLocal(new Query().where(field, 'equal', false, true)).length;
+            return new DataManager(ds as JSON[]).executeLocal(new Query().where(field, 'equal', false, true)).length;
         },
         /**
          * Returns the length of the given data.

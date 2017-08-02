@@ -11,26 +11,26 @@ import { extend } from '@syncfusion/ej2-base/util';
 import '../node_modules/es6-promise/dist/es6-promise';
 
 describe('Json Adaptor', () => {
-    let data: Object[] = [
+    let data: JSON[] = ([
         { OrderID: 10248, CustomerID: 'VINET', EmployeeID: 5, Freight: 32.38, Guid: 'f89dee73-af9f-4cd4-b330-db93c25ff3c7' },
         { OrderID: 10249, CustomerID: 'AANAR', EmployeeID: 2, Freight: 11.61, Guid: 'db2d2186-1c29-4d1e-88ef-a127f521b9c6' },
         { OrderID: 10250, CustomerID: 'VICTE', EmployeeID: 7, Freight: 65.83, Guid: '6F9619FF-8B86-D011-B42D-00C04FC964FF' },
         { OrderID: 10251, CustomerID: 'VINET', EmployeeID: 7, Freight: 70.63, Guid: 'f89dee73-af9f-4cd4-b330-db93c25ff3c8' },
         { OrderID: 10252, CustomerID: 'SUPRD', EmployeeID: 6, Freight: 45.45, Guid: 'f89dee73-af9f-4cd4-b330-db93c25ff3c9' }
-    ];
-    let crudData: Object[] = [
+    ]as Object) as JSON[];
+    let crudData: JSON[] = ([
         { OrderID: 10248, CustomerID: 'VINET', EmployeeID: 5, Freight: 32.38 },
         { OrderID: 10249, CustomerID: 'AANAR', EmployeeID: 2, Freight: 11.61 },
         { OrderID: 10250, CustomerID: 'VICTE', EmployeeID: 7, Freight: 65.83 },
         { OrderID: 10251, CustomerID: 'VINET', EmployeeID: 7, Freight: 70.63 },
         { OrderID: 10252, CustomerID: 'SUPRD', EmployeeID: 6, Freight: 45.45 }
-    ];
-    let aggData: Object[] = [
+    ]as Object) as JSON[];
+    let aggData: JSON[] = ([
         { OrderID: 10248, CustomerID: 'VINET', EmployeeID: 5, Freight: 32.38, Verified: true },
         { OrderID: 10249, CustomerID: 'AANAR', EmployeeID: 2, Freight: 11.61, Verified: false },
         { OrderID: 10250, CustomerID: 'VICTE', EmployeeID: 7, Freight: 65.83, Verified: true },
         { OrderID: 10251, CustomerID: 'SUPRD', EmployeeID: 7, Freight: 70.63, Verified: false }
-    ];
+    ]as Object) as JSON[];
     let dataManager: DataManager;
     describe('To check DataManager', () => {
         it('generated data properly', () => {
@@ -434,26 +434,26 @@ describe('OData Adaptor', () => {
     type ResponseType = { result: Object[], count: number | string };
     type MockAjaxReturn = { promise: Promise<Object>, request: JasmineAjaxRequest };
     let dataManager: DataManager;
-    let data: Object[] = [
+    let data: JSON[] = ([
         { OrderID: 10248, CustomerID: 'VINET', EmployeeID: 5, Freight: 32.38, Guid: 'f89dee73-af9f-4cd4-b330-db93c25ff3c7' },
         { OrderID: 10249, CustomerID: 'AANAR', EmployeeID: 2, Freight: 11.61, Guid: 'db2d2186-1c29-4d1e-88ef-a127f521b9c6' },
         { OrderID: 10250, CustomerID: 'VICTE', EmployeeID: 7, Freight: 65.83, Guid: '6F9619FF-8B86-D011-B42D-00C04FC964FF' },
         { OrderID: 10251, CustomerID: 'VINET', EmployeeID: 7, Freight: 70.63, Guid: 'f89dee73-af9f-4cd4-b330-db93c25ff3c8' },
         { OrderID: 10252, CustomerID: 'SUPRD', EmployeeID: 6, Freight: 45.45, Guid: 'f89dee73-af9f-4cd4-b330-db93c25ff3c9' }
-    ];
-    let crudData: Object[] = [
+    ]as Object) as JSON[];
+    let crudData: JSON[] = ([
         { OrderID: 10248, CustomerID: 'VINET', EmployeeID: 5, Freight: 32.38 },
         { OrderID: 10249, CustomerID: 'AANAR', EmployeeID: 2, Freight: 11.61 },
         { OrderID: 10250, CustomerID: 'VICTE', EmployeeID: 7, Freight: 65.83 },
         { OrderID: 10251, CustomerID: 'VINET', EmployeeID: 7, Freight: 70.63 },
         { OrderID: 10252, CustomerID: 'SUPRD', EmployeeID: 6, Freight: 45.45 }
-    ];
-    let aggData: Object[] = [
+    ]as Object) as JSON[];
+    let aggData: JSON[] = ([
         { OrderID: 10248, CustomerID: 'VINET', EmployeeID: 5, Freight: 32.38, Verified: true },
         { OrderID: 10249, CustomerID: 'AANAR', EmployeeID: 2, Freight: 11.61, Verified: false },
         { OrderID: 10250, CustomerID: 'VICTE', EmployeeID: 7, Freight: 65.83, Verified: true },
         { OrderID: 10251, CustomerID: 'SUPRD', EmployeeID: 7, Freight: 70.63, Verified: false }
-    ];
+    ]as Object) as JSON[];
 
     let mockAjax: Function = (data: { [o: string]: Object | Object[] } | Object[], query: Query, response?: Object):
         MockAjaxReturn => {

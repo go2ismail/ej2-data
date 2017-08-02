@@ -13,13 +13,13 @@ describe('Query', () => {
         });
     });
     describe('Query operation in JSON data', () => {
-        let data: Object[] = [
+        let data: JSON[] = ([
             { OrderID: 10248, CustomerID: 'VINET', EmployeeID: 5, Freight: 32.38 },
             { OrderID: 10249, CustomerID: 'AANAR', EmployeeID: 2, Freight: 11.61 },
             { OrderID: 10250, CustomerID: 'VICTE', EmployeeID: 7, Freight: 65.83 },
             { OrderID: 10251, CustomerID: 'VINET', EmployeeID: 7, Freight: 70.63 },
             { OrderID: 10252, CustomerID: 'SUPRD', EmployeeID: 6, Freight: 45.45 }
-        ];
+        ]as Object) as JSON[];
         let dataManager: DataManager = new DataManager(data);
         let query: Query = new Query();
         describe('JSON data is generated properly', () => {
@@ -46,7 +46,7 @@ describe('Query', () => {
                 expect(result.length).toBe(data.length);
             });
             it('To check datamanager is changed as new.', () => {
-                dm = new DataManager([{ OrderID: 10251, CustomerID: 'TOMSP', EmployeeID: 7, Freight: 70.63 }]);
+                dm = new DataManager(([{ OrderID: 10251, CustomerID: 'TOMSP', EmployeeID: 7, Freight: 70.63 }]as Object) as JSON[]);
                 query.using(dm);
                 expect(query.dataManager).toEqual(dm);
             });

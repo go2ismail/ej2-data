@@ -374,7 +374,7 @@ export class UrlAdaptor extends Adaptor {
         }
         // Sorting
         for (let i: number = 0; i < queries.sorts.length; i++) {
-            temp = DataUtil.getValue(queries.sorts[i].e.fieldName, query);
+            temp = DataUtil.getValue(queries.sorts[i].e.fieldName, query) as QueryOptions;
             request.sorts.push(DataUtil.callAdaptorFunction(
                 this, 'onEachSort', { name: temp, direction: queries.sorts[i].e.direction }, query));
         }
@@ -409,7 +409,7 @@ export class UrlAdaptor extends Adaptor {
         }
         // Grouping
         for (let i: number = 0; i < queries.groups.length; i++) {
-            request.groups.push(DataUtil.getValue(queries.groups[i].e.fieldName, query));
+            request.groups.push(DataUtil.getValue(queries.groups[i].e.fieldName, query) as QueryOptions);
         }
         // aggregates
         for (let i: number = 0; i < queries.aggregates.length; i++) {
@@ -442,8 +442,8 @@ export class UrlAdaptor extends Adaptor {
                 contentType: 'application/json; charset=utf-8'
             };
         }
-        temp = this.convertToQueryString(req, query, dm);
-        temp = (dm.dataSource.url.indexOf('?') !== -1 ? '&' : '/') + temp;
+        temp = this.convertToQueryString(req, query, dm) as QueryOptions;
+        temp = (dm.dataSource.url.indexOf('?') !== -1 ? '&' : '/') + temp as QueryOptions;
         return {
             type: 'GET', url: (<string>temp).length ? url.replace(/\/*$/, <string>temp) : url, pvtData: p
         };
@@ -500,7 +500,7 @@ export class UrlAdaptor extends Adaptor {
         let groupDs: Object[] = data.groupDs;
         if (xhr && xhr.getResponseHeader('Content-Type') &&
             xhr.getResponseHeader('Content-Type').indexOf('xml') !== -1) {
-            return query.requiresCounts ? { result: [], count: 0 } : [];
+            return (query.requiresCounts ? { result: [], count: 0 } : []) as DataResult;
         }
         let d: { action: string } = JSON.parse(requests.data);
         if (d && d.action === 'batch' && data.addedRecords) {
@@ -660,14 +660,14 @@ export class UrlAdaptor extends Adaptor {
     }
 
     protected getAggregateResult(pvt: PvtOptions, data: DataResult, args: DataResult, groupDs?: Object[]): DataResult {
-        let pData: DataResult = data as Object[];
+        let pData: DataResult = data;
         if (data && data.result) { pData = data.result; }
         if (pvt && pvt.aggregates && pvt.aggregates.length) {
             let agg: Aggregates[] = pvt.aggregates;
             let fn: Function;
             let aggregateData: DataResult = pData;
             let res: { [key: string]: Aggregates } = {};
-            if (data.aggregate) { aggregateData = data.aggregate as Object[]; }
+            if (data.aggregate) { aggregateData = data.aggregate; }
             for (let i: number = 0; i < agg.length; i++) {
                 fn = DataUtil.aggregates[agg[i].type];
                 if (fn) {
@@ -684,7 +684,7 @@ export class UrlAdaptor extends Adaptor {
                 if (!isNullOrUndefined(groupDs)) {
                     groupDs = DataUtil.group(groupDs, groups[i]);
                 }
-                pData = DataUtil.group(<Object[]>pData, groups[i], pvt.aggregates, level, groupDs);
+                pData = DataUtil.group(<Object[]>pData, groups[i], pvt.aggregates, level, groupDs) as DataResult;
             }
             args.result = pData;
         }
@@ -699,6 +699,23 @@ export class UrlAdaptor extends Adaptor {
         req.searches = Query.filterQueries(query.queries, 'onSearch');
         req.aggregates = Query.filterQueries(query.queries, 'onAggregates');
         return req;
+    }
+
+    private addParams(options: { dm: DataManager, query: Query, params: ParamOption[], reqParams: { [key: string]: Object } }): void {
+        let req: { params: Object } = options.reqParams as { params: Object };
+        if (options.params.length) {
+            req.params = {};
+        }
+        for (let tmp of options.params) {
+            if (req[tmp.key]) {
+                throw new Error('Query() - addParams: Custom Param is conflicting other request arguments');
+            }
+            req[tmp.key] = tmp.value;
+            if (tmp.fn) {
+                req[tmp.key] = tmp.fn.call(options.query, tmp.key, options.query, options.dm);
+            }
+            req.params[tmp.key] = req[tmp.key];
+        }
     }
 
 }
@@ -980,7 +997,7 @@ export class ODataAdaptor extends UrlAdaptor {
 
         if (version === 3 && data.value) { data = data.value; }
         if (data.d) { data = data.d; }
-        if (version < 3 && data.results) { data = data.results; }
+        if (version < 3 && data.results) { data = data.results as DataResult; }
 
         let args: DataResult = {};
         args.count = count;
@@ -1187,22 +1204,22 @@ export class ODataAdaptor extends UrlAdaptor {
     protected processBatchResponse(
         data: DataResult, query?: Query, xhr?: XMLHttpRequest, request?: Ajax, changes?: CrudOptions): CrudOptions | DataResult {
         if (xhr && xhr.getResponseHeader('Content-Type') && xhr.getResponseHeader('Content-Type').indexOf('xml') !== -1) {
-            return query.requiresCounts ? { result: [], count: 0 } : [];
+            return (query.requiresCounts ? { result: [], count: 0 } : []) as DataResult;
         }
         if (request && this.options.batch && DataUtil.endsWith(request.url, this.options.batch) && request.type.toLowerCase() === 'post') {
             let guid: string = xhr.getResponseHeader('Content-Type');
             let cIdx: number;
             let jsonObj: Object;
             guid = guid.substring(guid.indexOf('=batchresponse') + 1);
-            data = (<string>data).split(guid);
+            data = (<string>data).split(guid) as DataResult;
             if ((<string[]>data).length < 2) { return {}; }
 
-            data = (<string[]>data)[1];
+            data = (<string[]>data)[1] as DataResult;
             let exVal: RegExpExecArray = /(?:\bContent-Type.+boundary=)(changesetresponse.+)/i.exec(<string>data);
             if (exVal) { (<string>data).replace(exVal[0], ''); }
 
             let changeGuid: string = exVal ? exVal[1] : '';
-            data = (<string>data).split(changeGuid);
+            data = (<string>data).split(changeGuid) as DataResult;
 
             for (let i: number = (<string[]>data).length; i > -1; i--) {
                 if (!/\bContent-ID:/i.test((<string[]>data)[i]) || !/\bHTTP.+201/.test((<string[]>data)[i])) {
@@ -1436,7 +1453,7 @@ export class WebApiAdaptor extends ODataAdaptor {
                 if (!DataUtil.isNull(data.Count)) { count = data.Count; }
             }
 
-            if (version < 3 && data.Items) { data = data.Items; }
+            if (version < 3 && data.Items) { data = data.Items as DataResult; }
 
             args.count = count;
             args.result = data;
