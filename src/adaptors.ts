@@ -1,5 +1,5 @@
 import { Ajax } from '@syncfusion/ej2-base';
-import { merge, extend, isNullOrUndefined, setValue } from '@syncfusion/ej2-base/util';
+import { merge, extend, isNullOrUndefined, setValue } from '@syncfusion/ej2-base';
 import { DataUtil, Aggregates } from './util';
 import { DataManager, DataOptions } from './manager';
 import { Query, Predicate, QueryOptions, QueryList, ParamOption } from './query';

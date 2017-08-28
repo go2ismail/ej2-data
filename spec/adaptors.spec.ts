@@ -7,7 +7,7 @@ import { ODataAdaptor, ODataV4Adaptor, WebApiAdaptor, CacheAdaptor } from '../sr
 import { Query, Predicate } from '../src/query';
 import { DataUtil } from '../src/util';
 import { Ajax } from '@syncfusion/ej2-base';
-import { extend } from '@syncfusion/ej2-base/util';
+import { extend } from '@syncfusion/ej2-base';
 import '../node_modules/es6-promise/dist/es6-promise';
 
 describe('Json Adaptor', () => {

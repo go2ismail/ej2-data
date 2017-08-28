@@ -1,5 +1,5 @@
 import { Ajax } from '@syncfusion/ej2-base';
-import { extend, isNullOrUndefined } from '@syncfusion/ej2-base/util';
+import { extend, isNullOrUndefined } from '@syncfusion/ej2-base';
 import { DataUtil, Aggregates, Group } from './util';
 import { Query } from './query';
 import { ODataAdaptor, JsonAdaptor, CacheAdaptor, RemoteSaveAdaptor } from './adaptors';

@@ -1,4 +1,4 @@
-import { merge, isNullOrUndefined } from '@syncfusion/ej2-base/util';
+import { merge, isNullOrUndefined } from '@syncfusion/ej2-base';
 import { DataManager } from './manager';
 import { Query } from './query';
 const consts: { [key: string]: string } = { GroupGuid: '{271bbba0-1ee7}' };

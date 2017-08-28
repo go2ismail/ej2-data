@@ -4,7 +4,7 @@
 import { DataManager, DataOptions } from '../src/manager';
 import { RemoteSaveAdaptor } from '../src/adaptors';
 import { Query } from '../src/query';
-import { extend } from '@syncfusion/ej2-base/util';
+import { extend } from '@syncfusion/ej2-base';
 
 describe('DataManager', () => {
     let employeesData: JSON[] = ([{ EmployeeID: 1, LastName: "Davolio", FirstName: "Nancy", Title: "Sales Representative" },
