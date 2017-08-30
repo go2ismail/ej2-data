@@ -1,7 +1,7 @@
 {
 	"name": "@syncfusion/ej2-data",
 	"version": "1.0.11",
-	"description": "Syncfusion TypeScript DataManager",
+	"description": "Essential JS 2 DataManager",
 	"author": "Syncfusion Inc.",
 	"license": "SEE LICENSE IN license",
 	"module": "dist/es6/index.js",
