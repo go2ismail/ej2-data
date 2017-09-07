@@ -291,9 +291,14 @@ export class JsonAdaptor extends Adaptor {
      * Inserts new record in the table.
      * @param  {DataManager} dm
      * @param  {Object} data
+     * @param  {number}  position
      */
-    public insert(dm: DataManager, data: Object): Object {
-        return dm.dataSource.json.push(data);
+    public insert(dm: DataManager, data: Object, position?: number ): Object {
+        if (isNullOrUndefined(position)) {
+            return dm.dataSource.json.push(data);
+        } else {
+            return dm.dataSource.json.splice(position, 0, data);
+        }
     }
 
     /**

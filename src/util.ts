@@ -745,14 +745,14 @@ export class DataUtil {
         },
         /**
          * The method used to replace the value based on the type.
-         * @param  {string} key
          * @param  {Object} value
+         * @param  {boolean} stringify
          * @hidden
          */
-        replacer: (value: Object): Object => {
+        replacer: (value: Object, stringify?: boolean): Object => {
 
             if (DataUtil.isPlainObject(value)) {
-                return DataUtil.parse.jsonReplacer(value);
+                return DataUtil.parse.jsonReplacer(value, stringify);
             }
 
             if (value instanceof Array) {
@@ -760,7 +760,7 @@ export class DataUtil {
             }
 
             if (value instanceof Date) {
-                return DataUtil.parse.jsonReplacer({ val: value }).val;
+                return DataUtil.parse.jsonReplacer({ val: value }, stringify).val;
             }
             return value;
         },

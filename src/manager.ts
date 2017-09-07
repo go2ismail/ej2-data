@@ -432,7 +432,7 @@ export class DataManager {
      * @param  {Query} query - Sets default query for the DataManager.
      */
     public update(keyField: string, value: Object, tableName?: string | Query, query?: Query): Object | Promise<Object> {
-        value = DataUtil.parse.replacer(value);
+        value = DataUtil.parse.replacer(value, !this.dataSource.offline);
 
         if (tableName instanceof Query) {
             query = <Query>tableName;
