@@ -293,7 +293,7 @@ export class JsonAdaptor extends Adaptor {
      * @param  {Object} data
      * @param  {number}  position
      */
-    public insert(dm: DataManager, data: Object, position?: number ): Object {
+    public insert(dm: DataManager, data: Object, tableName?: string, query?: Query, position?: number): Object {
         if (isNullOrUndefined(position)) {
             return dm.dataSource.json.push(data);
         } else {

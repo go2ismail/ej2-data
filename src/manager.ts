@@ -143,7 +143,7 @@ export class DataManager {
                 if (res[j][from] instanceof Array) {
                     res[j] = extend({}, {}, res[j]) as { [key: string]: Object[] };
                     res[j][from] = this.adaptor.processResponse(
-                        query.subQuery.using(new DataManager(res[j][from].slice(0)as JSON[])).executeLocal(),
+                        query.subQuery.using(new DataManager(res[j][from].slice(0) as JSON[])).executeLocal(),
                         this, query);
                 }
             }
@@ -247,8 +247,9 @@ export class DataManager {
                 subDeffer.then(
                     (subData: { count: number, xhr: XMLHttpRequest }) => {
                         if (data) {
-                            DataUtil.buildHierarchy(query.subQuery.fKey, query.subQuery.fromTable, data as Group,
-                                                    subData as Group, query.subQuery.key);
+                            DataUtil.buildHierarchy(
+                                query.subQuery.fKey, query.subQuery.fromTable, data as Group,
+                                subData as Group, query.subQuery.key);
                             process(data, subData.count, subData.xhr);
                         }
                     },
@@ -382,7 +383,7 @@ export class DataManager {
      * @param  {string|Query} tableName - Defines the table name.
      * @param  {Query} query - Sets default query for the DataManager.
      */
-    public insert(data: Object, tableName?: string | Query, query?: Query): Object | Promise<Object> {
+    public insert(data: Object, tableName?: string | Query, query?: Query, position?: number): Object | Promise<Object> {
         data = DataUtil.parse.replacer(data);
 
         if (tableName instanceof Query) {
@@ -390,7 +391,7 @@ export class DataManager {
             tableName = null;
         }
 
-        let req: Object = this.adaptor.insert(this, data, tableName, query);
+        let req: Object = this.adaptor.insert(this, data, tableName, query, position);
 
         if (this.dataSource.offline) {
             return req;
