@@ -476,6 +476,19 @@ export class DataUtil {
         'contains': 'substringof'
     };
 
+    /**
+     * Specifies the Object with filter operators which will be used for ODataV4 filter query generation.
+     * It will be used for string type filter query.
+     */
+    public static odv4UniOperator: { [key: string]: string } = {
+        '$=': 'endswith',
+        '^=': 'startswith',
+        '*=': 'contains',
+        'endswith': 'endswith',
+        'startswith': 'startswith',
+        'contains': 'contains'
+    };
+
     public static fnOperators: Operators = {
         /**
          * Returns true when the actual input is equal to the given input.
@@ -716,9 +729,11 @@ export class DataUtil {
                 } else if (/^(\d{4}\-\d\d\-\d\d([tT][\d:\.]*){1})([zZ]|([+\-])(\d\d):?(\d\d))?$/.test(<string>value)) {
                     let arr: string[] = (<string>dupValue).split(/[^0-9]/);
                     value = DataUtil.parse.jsonReplacer(
-                        { value: new Date(
-                        parseInt(arr[0], 10), parseInt(arr[1], 10) - 1, parseInt(arr[2], 10), parseInt(arr[3], 10),
-                        parseInt(arr[4], 10), parseInt(arr[5], 10))},
+                        {
+                            value: new Date(
+                                parseInt(arr[0], 10), parseInt(arr[1], 10) - 1, parseInt(arr[2], 10), parseInt(arr[3], 10),
+                                parseInt(arr[4], 10), parseInt(arr[5], 10))
+                        },
                         false).value;
                 }
             }

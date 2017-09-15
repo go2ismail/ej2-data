@@ -1,5 +1,5 @@
 import { Ajax } from '@syncfusion/ej2-base';
-import { merge, extend, isNullOrUndefined, setValue } from '@syncfusion/ej2-base';
+import { merge, extend, isNullOrUndefined, setValue, getValue } from '@syncfusion/ej2-base';
 import { DataUtil, Aggregates } from './util';
 import { DataManager, DataOptions } from './manager';
 import { Query, Predicate, QueryOptions, QueryList, ParamOption } from './query';
@@ -731,6 +731,8 @@ export class UrlAdaptor extends Adaptor {
  */
 export class ODataAdaptor extends UrlAdaptor {
 
+    private getModuleName: Function;
+
     // options replaced the default adaptor options
     protected options: RemoteOptions = extend({}, this.options, {
         requestType: 'get',
@@ -751,7 +753,10 @@ export class ODataAdaptor extends UrlAdaptor {
         changeSetContent: 'Content-Type: application/http\nContent-Transfer-Encoding: binary ',
         batchChangeSetContentType: 'Content-Type: application/json; charset=utf-8 '
     });
-
+    constructor() {
+        super();
+        this.getModuleName = getValue('getModulename', this);
+    }
     /**
      * Generate request string based on the filter criteria from query.
      * @param  {Predicate} pred
@@ -794,7 +799,13 @@ export class ODataAdaptor extends UrlAdaptor {
             return returnValue + val;
         }
 
-        operator = DataUtil.odUniOperator[predicate.operator];
+        if (!isNullOrUndefined(this.getModuleName)) {
+            if (this.getModuleName() === 'ODataV4Adaptor') {
+                operator = DataUtil.odv4UniOperator[predicate.operator];
+            }
+        } else {
+            operator = DataUtil.odUniOperator[predicate.operator];
+        }
 
         if (operator === 'substringof') {
             let temp: string = <string>val;
@@ -1250,6 +1261,13 @@ export class ODataAdaptor extends UrlAdaptor {
  * @hidden
  */
 export class ODataV4Adaptor extends ODataAdaptor {
+
+    /**
+     * @hidden
+     */
+    protected getModulename(): string {
+        return 'ODataV4Adaptor';
+    };
 
     // options replaced the default adaptor options
     protected options: RemoteOptions = extend({}, this.options, {
