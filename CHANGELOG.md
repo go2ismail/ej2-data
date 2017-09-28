@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### DataManager
+
+#### Bug Fixes
+- Contains operator support added for odatav4.
+- Add record by index in JavaScript object.
+- Date object changed to string when updating.
+
 ## 1.0.14-preview (2017-08-31)
 
 ## Bug Fixes
