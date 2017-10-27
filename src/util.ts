@@ -133,7 +133,8 @@ export class DataUtil {
      * @param  {number} level?
      * @param  {Object[]} groupDs?
      */
-    public static group(jsonArray: Object[], field?: string, aggregates?: Object[], level?: number, groupDs?: Object[]): Object[] {
+    public static group(jsonArray: Object[], field?: string, aggregates?: Object[], level?: number, groupDs?: Object[], format?: Function):
+        Object[] {
         level = level || 1;
         let jsonData: Group[] = jsonArray;
         let guid: string = 'GroupGuid';
@@ -144,10 +145,10 @@ export class DataUtil {
                     let temp: Group[] = groupDs.filter((e: { key: string }) => { return e.key === jsonData[j].key; });
                     indx = groupDs.indexOf(temp[0]);
                     jsonData[j].items = this.group(
-                        jsonData[j].items, field, aggregates, (jsonData as Group).level + 1, (groupDs as Group[])[indx].items);
+                        jsonData[j].items, field, aggregates, (jsonData as Group).level + 1, (groupDs as Group[])[indx].items, format);
                     jsonData[j].count = (groupDs as Group[])[indx].count;
                 } else {
-                    jsonData[j].items = this.group(jsonData[j].items, field, aggregates, (jsonData as Group).level + 1);
+                    jsonData[j].items = this.group(jsonData[j].items, field, aggregates, (jsonData as Group).level + 1, null, format);
                     jsonData[j].count = jsonData[j].items.length;
                 }
             }
@@ -166,7 +167,9 @@ export class DataUtil {
 
         for (let i: number = 0; i < jsonData.length; i++) {
             let val: string = (<string>this.getVal(jsonData, i, field));
-
+            if (!isNullOrUndefined(format)) {
+                val = format(val, field);
+            }
             if (!grouped[val]) {
                 grouped[val] = {
                     key: val,

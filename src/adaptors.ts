@@ -228,7 +228,7 @@ export class JsonAdaptor extends Adaptor {
                 agg.push({ type: tmp.type, field: DataUtil.getValue(tmp.field, query) });
             }
         }
-        return DataUtil.group(ds, DataUtil.getValue(e.fieldName, query), agg);
+        return DataUtil.group(ds, DataUtil.getValue(e.fieldName, query), agg, null, null, e.comparer as Function);
     }
 
     /**
@@ -291,7 +291,7 @@ export class JsonAdaptor extends Adaptor {
      * Inserts new record in the table.
      * @param  {DataManager} dm
      * @param  {Object} data
-     * @param  {number} Â position
+     * @param  {number}  position
      */
     public insert(dm: DataManager, data: Object, tableName?: string, query?: Query, position?: number): Object {
         if (isNullOrUndefined(position)) {
@@ -529,8 +529,9 @@ export class UrlAdaptor extends Adaptor {
      * @param  {Object[]} e
      * @returns void
      */
-    public onGroup(e: Object[]): void {
+    public onGroup(e: QueryOptions[]): QueryOptions[] {
         this.pvt.groups = e;
+        return e;
     }
 
     /**
@@ -911,9 +912,9 @@ export class ODataAdaptor extends UrlAdaptor {
      * @param  {Object[]} e
      * @returns string
      */
-    public onGroup(e: Object[]): string {
+    public onGroup(e: QueryOptions[]): QueryOptions[] {
         this.pvt.groups = e;
-        return '';
+        return [];
     }
 
     /**
@@ -1809,7 +1810,7 @@ export interface CrudOptions {
  * @hidden
  */
 export interface PvtOptions {
-    groups?: Object[];
+    groups?: QueryOptions[];
     aggregates?: Aggregates[];
     search?: Object | Predicate;
     changeSet?: number;

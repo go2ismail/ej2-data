@@ -9,7 +9,12 @@ import { DataUtil } from '../src/util';
 import { Ajax } from '@syncfusion/ej2-base';
 import { extend } from '@syncfusion/ej2-base';
 import '../node_modules/es6-promise/dist/es6-promise';
-
+function format(val: number, field: string): any {
+    if (val === 10250) {
+        field = 'N';
+    }
+    return field;
+}
 describe('Json Adaptor', () => {
     let data: JSON[] = ([
         { OrderID: 10248, CustomerID: 'VINET', EmployeeID: 5, Freight: 32.38, Guid: 'f89dee73-af9f-4cd4-b330-db93c25ff3c7' },
@@ -24,7 +29,7 @@ describe('Json Adaptor', () => {
         { OrderID: 10250, CustomerID: 'VICTE', EmployeeID: 7, Freight: 65.83 },
         { OrderID: 10251, CustomerID: 'VINET', EmployeeID: 7, Freight: 70.63 },
         { OrderID: 10252, CustomerID: 'SUPRD', EmployeeID: 6, Freight: 45.45 }
-    ]as Object) as JSON[];
+    ] as Object) as JSON[];
     let aggData: JSON[] = ([
         { OrderID: 10248, CustomerID: 'VINET', EmployeeID: 5, Freight: 32.38, Verified: true },
         { OrderID: 10249, CustomerID: 'AANAR', EmployeeID: 2, Freight: 11.61, Verified: false },
@@ -287,6 +292,29 @@ describe('Json Adaptor', () => {
                 expect(result.result.length).toBe(4);
                 expect(result.result[0].aggregates['Freight - sum']).toBe(11.61);
             });
+            it('check length of the data with function param', () => {
+                dataManager = new DataManager(data, new Query().group('OrderID', format), new JsonAdaptor);
+                expect(dataManager.executeLocal().length).toBe(2);
+            });
+            it('check length of the data when using employee ID with function param', () => {
+                dataManager = new DataManager(data, new Query().group('EmployeeID', format), new JsonAdaptor);
+                expect(dataManager.executeLocal().length).toBe(1);
+            });
+            it('check length of the data when using guid with multiple group with function param', () => {
+                dataManager = new DataManager(data, new Query().group('Guid', format).group('EmployeeID', format).group('CustomerID', format), new JsonAdaptor);
+                expect(dataManager.executeLocal().length).toBe(1);
+            });
+            it('check searched data without data with function param', () => {
+                dataManager = new DataManager([], new Query().group('EmployeeID', format), new JsonAdaptor);
+                expect(dataManager.executeLocal().length).toEqual(0);
+            });
+            it('check length of the data', () => {
+                dataManager = new DataManager(
+                    data, new Query().group('OrderID', format).aggregate('sum', 'Freight').requiresCount(), new JsonAdaptor);
+                let result: any = dataManager.executeLocal();
+                expect(result.result.length).toBe(2);
+                expect(result.result[0].aggregates['Freight - sum']).toBe(160.07);
+            });
         });
         describe('take method', () => {
             it('check length of the data', () => {
@@ -447,13 +475,13 @@ describe('OData Adaptor', () => {
         { OrderID: 10250, CustomerID: 'VICTE', EmployeeID: 7, Freight: 65.83 },
         { OrderID: 10251, CustomerID: 'VINET', EmployeeID: 7, Freight: 70.63 },
         { OrderID: 10252, CustomerID: 'SUPRD', EmployeeID: 6, Freight: 45.45 }
-    ]as Object) as JSON[];
+    ] as Object) as JSON[];
     let aggData: JSON[] = ([
         { OrderID: 10248, CustomerID: 'VINET', EmployeeID: 5, Freight: 32.38, Verified: true },
         { OrderID: 10249, CustomerID: 'AANAR', EmployeeID: 2, Freight: 11.61, Verified: false },
         { OrderID: 10250, CustomerID: 'VICTE', EmployeeID: 7, Freight: 65.83, Verified: true },
         { OrderID: 10251, CustomerID: 'SUPRD', EmployeeID: 7, Freight: 70.63, Verified: false }
-    ]as Object) as JSON[];
+    ] as Object) as JSON[];
 
     let mockAjax: Function = (data: { [o: string]: Object | Object[] } | Object[], query: Query, response?: Object):
         MockAjaxReturn => {

@@ -1,5 +1,6 @@
 import { DataUtil } from './util';
 import { DataManager } from './manager';
+import { NumberFormatOptions, DateFormatOptions } from '@syncfusion/ej2-base';
 /**
  * Query class is used to build query which is used by the DataManager to communicate with datasource.
  */
@@ -289,12 +290,14 @@ export class Query {
      * Groups data with the given field name.
      * @param  {string} fieldName - Defines the column field.
      */
-    public group(fieldName: string): Query {
+    public group(fieldName: string, fn?: Function, format?: string | NumberFormatOptions | DateFormatOptions): Query {
         this.sortBy(fieldName, null, true);
         this.queries.push({
             fn: 'onGroup',
             e: {
-                fieldName: fieldName
+                fieldName: fieldName,
+                comparer: fn ? fn : null,
+                format: format ? format : null
             }
         });
         return this;
@@ -658,6 +661,7 @@ export interface QueryOptions {
     searchKey?: string | number | boolean;
     ignoreCase?: boolean;
     comparer?: string | Function;
+    format?: string| NumberFormatOptions | DateFormatOptions;
     direction?: string;
     pageIndex?: number;
     pageSize?: number;
