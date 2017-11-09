@@ -2,27 +2,14 @@
 
 ## [Unreleased]
 
-## 1.0.19-preview (2017-09-28)
-
 ### DataManager
 
-#### Bug Fixes
+DataManager communicates with data source and returns the desired result based on the Query provided
 
-- Contains operator support added for odatav4.
-- Add record by index in JavaScript object.
-- Date object changed to string when updating.
-
-## 1.0.14-preview (2017-08-31)
-
-## Bug Fixes
-
-- Rollup bundling issue fixed.
-
-## 1.0.11-preview (2017-08-03)
-
-### DataManager
-
-#### Bug Fixes
-
-- Resolved aggregation value is not obtained in the final result.
-- Resolved ODataV4Adaptor extended onPredicate method incorrectly.
+- Query – DataManager have APIs for generating JavaScript data query with ease.
+- CRUD in individual requests and Batch – CRUD operations are fully supported.
+ The options are enabled to commit the data as a single or multiple requests.
+- Adaptors – Adaptors are specific dataSource type interfaces that are used by
+ DataManager to communicate with DataSource.
+ DataManager have three in-built adaptors. They are, ODataAdaptor, JsonAdaptor and UrlAdaptor.
+- Calculate and maintain aggregates, sorting order and paging.
