@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## 15.4.17-preview (2017-11-13)
+
 ### DataManager
 
 DataManager communicates with data source and returns the desired result based on the Query provided.
