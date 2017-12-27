@@ -2,6 +2,29 @@
 
 ## [Unreleased]
 
+### DataManager
+
+#### New Features
+
+- Added typing file for ES5 global scripts (`dist/global/index.d.ts`)
+
+#### Breaking Changes
+
+- Modified the module bundle file name for ES6 bundling
+
+## 15.4.22-preview (2017-12-14)
+
+### DataManager
+
+#### New Features
+
+- Upgraded TypeScript version to 2.6.2
+
+#### Bug fixes
+
+- Renamed `Query.requireCounts` property as `Query.isCountRequired`.
+- Promise uncaught error for failure cases fixed.
+
 ## 15.4.17-preview (2017-11-13)
 
 ### DataManager
