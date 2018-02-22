@@ -2,9 +2,9 @@
  * Test case for dataManager
  */
 
-import {DataManager} from '../src/manager';
-import {DataUtil, Group} from '../src/util';
-import {Query, Predicate} from '../src/query';
+import { DataManager } from '../src/manager';
+import { DataUtil, Group } from '../src/util';
+import { Query, Predicate } from '../src/query';
 
 describe('DataUtil', () => {
     let dataManager: DataManager;
@@ -16,7 +16,7 @@ describe('DataUtil', () => {
         { OrderID: 10250, CustomerID: 'VICTE', EmployeeID: null, Freight: 65.83, Guid: '6F9619FF-8B86-D011-B42D-00C04FC964FF' },
         { OrderID: 10251, CustomerID: 'VINET', EmployeeID: 7, Freight: 70.63, Guid: 'f89dee73-af9f-4cd4-b330-db93c25ff3c8' },
         { OrderID: 10252, CustomerID: 'SUPRD', EmployeeID: null, Freight: 45.45, Guid: 'f89dee73-af9f-4cd4-b330-db93c25ff3c9' }
-    ]as Object) as JSON[];
+    ] as Object) as JSON[];
     describe('sorting for null data method', () => {
         it('To check null value sorting in ascending.', () => {
             dataManager = new DataManager(data);
@@ -104,9 +104,50 @@ describe('DataUtil', () => {
     });
     describe('group method with aggregates', () => {
         let gpds = DataUtil.group(data, "OrderID");
-        let gp = DataUtil.group(data.slice(2), "OrderID", [{ type:"sum", field:"OrderID" }], 0, gpds);
-        it('check aggregate data', () => {            
+        let gp = DataUtil.group(data.slice(2), "OrderID", [{ type: "sum", field: "OrderID" }], 0, gpds);
+        it('check aggregate data', () => {
             expect((gp[0] as Group).aggregates["OrderID - sum"]).toBe(10250);
         })
     });
+    describe('distinct value', () => {
+        let distinctObject: Object[] = DataUtil.distinct(data, 'CustomerID', true);
+        let distinctString: Object[] = DataUtil.distinct(data, 'CustomerID');
+        it('distinct value check', () => {
+            expect(distinctObject.length).toBe(4);
+            expect(distinctString.length).toBe(4);
+        });
+    });
+    describe('ignore diacritics values', () => {
+        it('To ignore diacritics values', () => {
+            let result: Object = DataUtil.ignoreDiacritics('Áèèleè');
+            expect(result).toBe('Aeelee');
+            result = DataUtil.ignoreDiacritics(10254);
+            expect(result).toBe(10254);
+            result = DataUtil.ignoreDiacritics(true);
+            expect(result).toBe(true);
+        });
+    });
+    describe('7222 Select method', () => {
+        it('To check result structure for complex property from select method',() => {
+            let result: Object = new DataManager([{ a: { b:25, c: 4 }, d: 10} ] ).executeLocal(new Query().select(['a.b', 'd']));
+            expect(result.toString()).toBe([{a: { b: 25}, d: 10}].toString());
+        });
+    });
+
+    describe('EJ2-7054-startwith lowercase conversion issue', () => {
+        it('check endswith function', () => {
+            expect(DataUtil.fnOperators.startswith(10332, 'abc', true, false)).toBeFalsy();
+        });
+    });
+
+    describe('Timezone handling check', () => {
+        it('toTimeZone method', () => {
+            let dateVal: Date = new Date(2017, 1, 1);
+            expect(DataUtil.dateParse.toTimeZone(dateVal, 1, true).getDay).not.toBeUndefined();
+            expect(DataUtil.dateParse.toTimeZone(dateVal, 0, true).getDay).not.toBeUndefined();
+            expect(DataUtil.dateParse.toTimeZone(dateVal, 0).getDay).not.toBeUndefined();
+            expect(typeof DataUtil.parse.replacer({ val: dateVal }).val).toEqual('string');
+        });
+    });
+
 });

@@ -30,7 +30,7 @@ export class Query {
     /** @hidden */
     public params: ParamOption[];
     /** @hidden */
-    public requiresCounts: boolean;
+    public isCountRequired: boolean;
     /** @hidden */
     public dataManager: DataManager;
 
@@ -135,7 +135,7 @@ export class Query {
         cloned.subQuerySelector = this.subQuerySelector;
         cloned.subQuery = this.subQuery;
         cloned.fKey = this.fKey;
-        cloned.requiresCounts = this.requiresCounts;
+        cloned.isCountRequired = this.isCountRequired;
         return cloned;
     }
 
@@ -185,12 +185,12 @@ export class Query {
      */
     public where(
         fieldName: string | Predicate | Predicate[], operator?: string,
-        value?: string | Date | number | boolean, ignoreCase?: boolean): Query {
+        value?: string | Date | number | boolean, ignoreCase?: boolean, ignoreAccent?: boolean): Query {
 
         operator = operator ? (operator).toLowerCase() : null;
         let predicate: Predicate | QueryOptions = null;
         if (typeof fieldName === 'string') {
-            predicate = new Predicate(fieldName, operator, value, ignoreCase);
+            predicate = new Predicate(fieldName, operator, value, ignoreCase, ignoreAccent);
         } else if (fieldName instanceof Predicate) {
             predicate = fieldName;
         }
@@ -209,24 +209,27 @@ export class Query {
      * @param  {boolean} ignoreCase - If ignore case set to false, then filter data with exact match or else  
      * filter data with case insensitive.
      */
-    public search(searchKey: string | number | boolean, fieldNames?: string | string[], operator?: string, ignoreCase?: boolean): Query {
-        if (typeof fieldNames === 'string') {
-            fieldNames = [(fieldNames as string)];
-        }
-        operator = operator || 'contains';
-        let comparer: Function = (<{ [key: string]: Function }>DataUtil.fnOperators)[operator];
-        this.queries.push({
-            fn: 'onSearch',
-            e: {
-                fieldNames: fieldNames,
-                operator: operator,
-                searchKey: searchKey,
-                ignoreCase: ignoreCase,
-                comparer: comparer
+    public search(
+        searchKey: string | number | boolean, fieldNames?: string | string[], operator?: string, ignoreCase?: boolean,
+        ignoreAccent?: boolean): Query {
+            if (typeof fieldNames === 'string') {
+                fieldNames = [(fieldNames as string)];
             }
-        });
-        return this;
-    }
+            operator = operator || 'contains';
+            let comparer: Function = (<{ [key: string]: Function }>DataUtil.fnOperators)[operator];
+            this.queries.push({
+                fn: 'onSearch',
+                e: {
+                    fieldNames: fieldNames,
+                    operator: operator,
+                    searchKey: searchKey,
+                    ignoreCase: ignoreCase,
+                    ignoreAccent: ignoreAccent,
+                    comparer: comparer
+                }
+            });
+            return this;
+        }
 
     /**
      * Sort the data with given sort criteria.
@@ -256,7 +259,7 @@ export class Query {
                 temp = (<QueryOptions>sorts[i]).e.fieldName;
                 if (typeof temp === 'string') {
                     if (temp === fieldName) { return this; }
-                } else if (temp instanceof Array) {
+                } else if (<string[]>temp instanceof Array) {
                     for (let j: number = 0; j < (temp as string[]).length; j++) {
                         if (temp[j] === fieldName || (fieldName as string).toLowerCase() === temp[j] + ' desc') {
                             return this;
@@ -400,7 +403,7 @@ export class Query {
      * It is used to get total number of records in the DataManager execution result.            
      */
     public requiresCount(): Query {
-        this.requiresCounts = true;
+        this.isCountRequired = true;
         return this;
     }
 
@@ -465,6 +468,8 @@ export class Predicate {
     /** @hidden */
     public ignoreCase: boolean;
     /** @hidden */
+    public ignoreAccent: boolean = false;
+    /** @hidden */
     public isComplex: boolean = false;
     /** @hidden */
     public predicates: Predicate[];
@@ -482,13 +487,13 @@ export class Predicate {
      */
     constructor(
         field: string | Predicate, operator: string, value: string | number | Date | boolean | Predicate | Predicate[],
-        ignoreCase: boolean = false) {
-
-        if (typeof field === 'string') {
+        ignoreCase: boolean = false, ignoreAccent?: boolean) {
+            if (typeof field === 'string') {
             this.field = field;
             this.operator = operator.toLowerCase();
             this.value = value;
             this.ignoreCase = ignoreCase;
+            this.ignoreAccent = ignoreAccent;
             this.isComplex = false;
             this.comparer = DataUtil.fnOperators.processOperator(this.operator);
         } else if (field instanceof Predicate && value instanceof Predicate || value instanceof Array) {
@@ -501,7 +506,7 @@ export class Predicate {
                 this.predicates.push(value);
             }
         }
-        return this;
+            return this;
     }
 
     /**
@@ -520,9 +525,11 @@ export class Predicate {
      * @param  {boolean} ignoreCase? - If ignore case set to false, then filter data with exact match or else  
      * filter data with case insensitive.
      */
-    public and(field: string | Predicate, operator?: string, value?: string | number, ignoreCase?: boolean): Predicate {
-        return Predicate.combine(this, field, operator, value, 'and', ignoreCase);
-    }
+    public and(
+        field: string | Predicate, operator?: string, value?: string | number,
+        ignoreCase?: boolean, ignoreAccent?: boolean): Predicate {
+            return Predicate.combine(this, field, operator, value, 'and', ignoreCase, ignoreAccent);
+        }
 
     /**
      * Adds n-number of new predicates on existing predicate with “or” condition.
@@ -540,9 +547,11 @@ export class Predicate {
      * @param  {boolean} ignoreCase? - If ignore case set to false, then filter data with exact match or else  
      * filter data with case insensitive.
      */
-    public or(field: string | Predicate, operator?: string, value?: string | number, ignoreCase?: boolean): Predicate {
-        return Predicate.combine(this, field, operator, value, 'or', ignoreCase);
-    }
+    public or(
+        field: string | Predicate, operator?: string, value?: string | number, ignoreCase?: boolean,
+        ignoreAccent?: boolean): Predicate {
+            return Predicate.combine(this, field, operator, value, 'or', ignoreCase, ignoreAccent);
+        }
 
     /**
      * Converts plain JavaScript object to Predicate object.
@@ -570,7 +579,7 @@ export class Predicate {
         let ret: boolean;
 
         if (!this.isComplex && this.comparer) {
-            return this.comparer.call(this, DataUtil.getObject(this.field, record), this.value, this.ignoreCase);
+            return this.comparer.call(this, DataUtil.getObject(this.field, record), this.value, this.ignoreCase, this.ignoreAccent);
         }
 
         isAnd = this.condition === 'and';
@@ -606,6 +615,7 @@ export class Predicate {
             operator: this.operator,
             value: this.value,
             ignoreCase: this.ignoreCase,
+            ignoreAccent: this.ignoreAccent,
             condition: this.condition,
             predicates: predicates
         };
@@ -623,12 +633,12 @@ export class Predicate {
 
     private static combine(
         pred: Predicate, field: string | Predicate, operator: string, value: string | number,
-        condition: string, ignoreCase?: boolean): Predicate {
+        condition: string, ignoreCase?: boolean, ignoreAccent?: boolean): Predicate {
         if (field instanceof Predicate) {
             return Predicate[condition](pred, field);
         }
         if (typeof field === 'string') {
-            return Predicate[condition](pred, new Predicate(field, operator, value, ignoreCase));
+            return Predicate[condition](pred, new Predicate(field, operator, value, ignoreCase, ignoreAccent));
         }
         return DataUtil.throwError('Predicate - ' + condition + ' : invalid arguments');
     }
@@ -642,7 +652,7 @@ export class Predicate {
             predicates.push(this.fromJSONData(preds[i]));
         }
         if (!json.isComplex) {
-            result = new Predicate(json.field, json.operator, json.value, json.ignoreCase);
+            result = new Predicate(json.field, json.operator, json.value, json.ignoreCase, json.ignoreAccent);
         } else {
             result = new Predicate(predicates[0], json.condition, predicates.slice(1));
         }
@@ -660,6 +670,7 @@ export interface QueryOptions {
     operator?: string;
     searchKey?: string | number | boolean;
     ignoreCase?: boolean;
+    ignoreAccent?: boolean;
     comparer?: string | Function;
     format?: string| NumberFormatOptions | DateFormatOptions;
     direction?: string;

@@ -356,10 +356,6 @@ describe('DataManager', () => {
                             status: 500,
                             statusText: 'Bad Request'
                         });
-                    mAjax.promise.then((e: ResponseType) => {
-                        result = e.result;
-                        done();
-                    });
                     mAjax.promise.then(
                         (e: { result: Object[] }) => {
                             result = e.result;

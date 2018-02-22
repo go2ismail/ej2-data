@@ -102,7 +102,7 @@ export class JsonAdaptor extends Adaptor {
             }
         }
 
-        if (query.requiresCounts) {
+        if (query.isCountRequired) {
             result = {
                 result: result,
                 count: count,
@@ -291,7 +291,7 @@ export class JsonAdaptor extends Adaptor {
      * Inserts new record in the table.
      * @param  {DataManager} dm
      * @param  {Object} data
-     * @param  {number}  position
+     * @param  {number} position
      */
     public insert(dm: DataManager, data: Object, tableName?: string, query?: Query, position?: number): Object {
         if (isNullOrUndefined(position)) {
@@ -463,7 +463,7 @@ export class UrlAdaptor extends Adaptor {
         if (options.expand) { req[options.expand] = query.expands; }
         req[options.select] = 'onSelect' in singles ?
             DataUtil.callAdaptorFunction(this, 'onSelect', DataUtil.getValue(singles.onSelect.fieldNames, query), query) : '';
-        req[options.count] = query.requiresCounts ? DataUtil.callAdaptorFunction(this, 'onCount', query.requiresCounts, query) : '';
+        req[options.count] = query.isCountRequired ? DataUtil.callAdaptorFunction(this, 'onCount', query.isCountRequired, query) : '';
         req[options.search] = request.searches.length ? DataUtil.callAdaptorFunction(this, 'onSearch', request.searches, query) : '';
         req[options.skip] = 'onSkip' in singles ?
             DataUtil.callAdaptorFunction(this, 'onSkip', DataUtil.getValue(singles.onSkip.nos, query), query) : '';
@@ -505,7 +505,7 @@ export class UrlAdaptor extends Adaptor {
         let groupDs: Object[] = data.groupDs;
         if (xhr && xhr.getResponseHeader('Content-Type') &&
             xhr.getResponseHeader('Content-Type').indexOf('xml') !== -1) {
-            return (query.requiresCounts ? { result: [], count: 0 } : []) as DataResult;
+            return (query.isCountRequired ? { result: [], count: 0 } : []) as DataResult;
         }
         let d: { action: string } = JSON.parse(requests.data);
         if (d && d.action === 'batch' && data.addedRecords) {
@@ -513,7 +513,7 @@ export class UrlAdaptor extends Adaptor {
             return changes;
         }
         if (data.d) {
-            data = data.d;
+            data = <DataResult>data.d;
         }
         let args: DataResult = {};
         if ('count' in data) { args.count = data.count; }
@@ -666,7 +666,7 @@ export class UrlAdaptor extends Adaptor {
     }
 
     protected getAggregateResult(pvt: PvtOptions, data: DataResult, args: DataResult, groupDs?: Object[]): DataResult {
-        let pData: DataResult = data;
+        let pData: DataResult | Object[] = data;
         if (data && data.result) { pData = data.result; }
         if (pvt && pvt.aggregates && pvt.aggregates.length) {
             let agg: Aggregates[] = pvt.aggregates;
@@ -690,7 +690,7 @@ export class UrlAdaptor extends Adaptor {
                 if (!isNullOrUndefined(groupDs)) {
                     groupDs = DataUtil.group(groupDs, groups[i]);
                 }
-                pData = DataUtil.group(<Object[]>pData, groups[i], pvt.aggregates, level, groupDs) as DataResult;
+                pData = DataUtil.group(<Object[]>pData, groups[i], pvt.aggregates, level, groupDs);
             }
             args.result = pData;
         }
@@ -980,7 +980,7 @@ export class ODataAdaptor extends UrlAdaptor {
         data: DataResult, ds?: DataOptions, query?: Query, xhr?: XMLHttpRequest, request?: Ajax, changes?: CrudOptions): Object {
         let pvtData: string = 'pvtData';
         if (!isNullOrUndefined(data.d)) {
-            let dataCopy: DataResult[] = (query && query.requiresCounts) ? data.d.results : (<DataResult[]>data.d);
+            let dataCopy: Object[] = <Object[]>((query && query.isCountRequired) ? (<DataResult>data.d).results : data.d);
             let metaData: string = '__metadata';
             if (!isNullOrUndefined(dataCopy)) {
                 for (let i: number = 0; i < dataCopy.length; i++) {
@@ -1001,19 +1001,19 @@ export class ODataAdaptor extends UrlAdaptor {
         let count: number = null;
         let version: number = (versionCheck && parseInt(versionCheck, 10)) || 2;
 
-        if (query && query.requiresCounts) {
+        if (query && query.isCountRequired) {
             let oDataCount: string = '__count';
             if (data[oDataCount] || data['odata.count']) {
                 count = data[oDataCount] || data['odata.count'];
             }
-            if (data.d) { data = data.d; }
+            if (data.d) { data = <DataResult>data.d; }
             if (data[oDataCount] || data['odata.count']) {
                 count = data[oDataCount] || data['odata.count'];
             }
         }
 
         if (version === 3 && data.value) { data = data.value; }
-        if (data.d) { data = data.d; }
+        if (data.d) { data = <DataResult>data.d; }
         if (version < 3 && data.results) { data = data.results as DataResult; }
 
         let args: DataResult = {};
@@ -1221,32 +1221,31 @@ export class ODataAdaptor extends UrlAdaptor {
     protected processBatchResponse(
         data: DataResult, query?: Query, xhr?: XMLHttpRequest, request?: Ajax, changes?: CrudOptions): CrudOptions | DataResult {
         if (xhr && xhr.getResponseHeader('Content-Type') && xhr.getResponseHeader('Content-Type').indexOf('xml') !== -1) {
-            return (query.requiresCounts ? { result: [], count: 0 } : []) as DataResult;
+            return (query.isCountRequired ? { result: [], count: 0 } : []) as DataResult;
         }
         if (request && this.options.batch && DataUtil.endsWith(request.url, this.options.batch) && request.type.toLowerCase() === 'post') {
             let guid: string = xhr.getResponseHeader('Content-Type');
             let cIdx: number;
-            let jsonObj: Object;
+            let jsonObj: Object; let d: string | string[] = data + '';
             guid = guid.substring(guid.indexOf('=batchresponse') + 1);
-            data = (<string>data).split(guid) as DataResult;
-            if ((<string[]>data).length < 2) { return {}; }
+            d = (<string>d).split(guid);
+            if ((<string[]>d).length < 2) { return {}; }
 
-            data = (<string[]>data)[1] as DataResult;
-            let exVal: RegExpExecArray = /(?:\bContent-Type.+boundary=)(changesetresponse.+)/i.exec(<string>data);
-            if (exVal) { (<string>data).replace(exVal[0], ''); }
+            d = (<string[]>d)[1];
+            let exVal: RegExpExecArray = /(?:\bContent-Type.+boundary=)(changesetresponse.+)/i.exec(<string>d);
+            if (exVal) { (<string>d).replace(exVal[0], ''); }
 
             let changeGuid: string = exVal ? exVal[1] : '';
-            data = (<string>data).split(changeGuid) as DataResult;
-
-            for (let i: number = (<string[]>data).length; i > -1; i--) {
-                if (!/\bContent-ID:/i.test((<string[]>data)[i]) || !/\bHTTP.+201/.test((<string[]>data)[i])) {
+            d = (<string>d).split(changeGuid);
+            for (let i: number = (<string[]>d).length; i > -1; i--) {
+                if (!/\bContent-ID:/i.test((<string[]>d)[i]) || !/\bHTTP.+201/.test((<string[]>d)[i])) {
                     continue;
                 }
 
-                cIdx = parseInt(/\bContent-ID: (\d+)/i.exec((<string[]>data)[i])[1], 10);
+                cIdx = parseInt(/\bContent-ID: (\d+)/i.exec((<string[]>d)[i])[1], 10);
 
                 if (changes.addedRecords[cIdx]) {
-                    jsonObj = DataUtil.parse.parseJson(/^\{.+\}/m.exec(<string>data[i])[0]);
+                    jsonObj = DataUtil.parse.parseJson(/^\{.+\}/m.exec(<string>d[i])[0]);
                     extend({}, changes.addedRecords[cIdx], this.processResponse(jsonObj));
                 }
             }
@@ -1374,7 +1373,7 @@ export class ODataV4Adaptor extends ODataAdaptor {
 
         let count: number = null;
         let dataCount: string = '@odata.count';
-        if (query && query.requiresCounts) {
+        if (query && query.isCountRequired) {
             if (dataCount in data) { count = data[dataCount]; }
         }
         data = data.value;
@@ -1473,7 +1472,7 @@ export class WebApiAdaptor extends ODataAdaptor {
             let versionCheck: string = xhr && request.getResponseHeader('DataServiceVersion');
             let version: number = (versionCheck && parseInt(versionCheck, 10)) || 2;
 
-            if (query && query.requiresCounts) {
+            if (query && query.isCountRequired) {
                 if (!DataUtil.isNull(data.Count)) { count = data.Count; }
             }
 
@@ -1719,12 +1718,12 @@ export class CacheAdaptor extends UrlAdaptor {
         obj = DataUtil.parse.parseJson(window.localStorage.getItem(this.guidId));
         let index: number = obj.keys.indexOf(key);
         if (index !== -1) {
-            obj.results.splice(index, 1);
+            (<Object[]>obj.results).splice(index, 1);
             obj.keys.splice(index, 1);
         }
         obj.results[obj.keys.push(key) - 1] = { keys: key, result: data.result, timeStamp: new Date(), count: data.count };
-        while (obj.results.length > this.pageSize) {
-            obj.results.splice(0, 1);
+        while ((<Object[]>obj.results).length > this.pageSize) {
+            (<Object[]>obj.results).splice(0, 1);
             obj.keys.splice(0, 1);
         }
         window.localStorage.setItem(this.guidId, JSON.stringify(obj));
@@ -1823,15 +1822,15 @@ export interface PvtOptions {
 export interface DataResult {
     nodeType?: number;
     addedRecords?: Object[];
-    d?: DataResult;
+    d?: DataResult | Object[];
     Count?: number;
     count?: number;
     result?: Object;
-    results?: Object[];
+    results?: Object[] | DataResult;
     aggregate?: DataResult;
     aggregates?: Aggregates;
     value?: Object;
-    Items?: Object[];
+    Items?: Object[] | DataResult;
     keys?: string[];
     groupDs?: Object[];
 }

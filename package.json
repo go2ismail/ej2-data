@@ -1,12 +1,14 @@
 {
 	"name": "@syncfusion/ej2-data",
-	"version": "15.4.17",
+	"version": "16.1.24",
 	"description": "Essential JS 2 DataManager",
 	"author": "Syncfusion Inc.",
 	"license": "SEE LICENSE IN license",
-	"module": "dist/es6/index.js",
+	"main": "./dist/ej2-data.umd.min.js",
+	"module": "./dist/es6/ej2-data.es5.js",
+	"es2015": "./dist/es6/ej2-data.es2015.js",
 	"dependencies": {
-		"@syncfusion/ej2-base": "*"
+		"@syncfusion/ej2-base": "16.1.24"
 	},
 	"devDependencies": {
 		"@types/chai": "^3.4.28",
@@ -19,7 +21,7 @@
 		"gulp-sass": "^3.1.0",
 		"gulp-typescript": "^3.1.6",
 		"requirejs": "^2.3.3",
-		"typescript": "2.3.4",
+		"typescript": "2.6.2",
 		"canteen": "^1.0.5",
 		"jasmine-ajax": "^3.3.1",
 		"jasmine-core": "^2.6.1",

@@ -554,8 +554,8 @@ describe('Query', () => {
                     expect(result[0]).not.toBe(data[0]);
                 });
                 it('To check keys of selected data.', () => {
-                    expect(result[0]).toBe(data[0]["OrderID"]);
-                    expect(result[4]).toBe(data[4]["OrderID"]);
+                    expect(result[0].toString()).toBe({"OrderID": data[0]['OrderID']}.toString());
+                    expect(result[4].toString()).toBe({"OrderID": data[4]['OrderID']}.toString());
                 });
             });
         });
@@ -566,12 +566,12 @@ describe('Query', () => {
                 expect(query.fKey).toEqual('Orders');
             });
         });
-        describe('requiresCounts method', () => {
+        describe('requiresCount method', () => {
             it('To check added queries.', () => {
                 dataManager = new DataManager(data);
-                expect(query.requiresCounts).toBeUndefined();
+                expect(query.isCountRequired).toBeUndefined();
                 query = new Query().requiresCount();
-                expect(query.requiresCounts).toBe(true);
+                expect(query.isCountRequired).toBe(true);
             });
         });
         describe('filtering operations', () => {
@@ -1129,6 +1129,24 @@ describe('Query', () => {
                     let pred: Predicate = Predicate.or(new Predicate('OrderID', 'equal', 10248));
                     query = new Query().where(pred);
                     let result: Object[] = query.executeLocal(dataManager);
+                    expect(result.length).toBe(1);
+                });
+            });
+            describe('to check in predicate', () => {
+                let result: any;
+                beforeAll((done: Function) => {
+                    dataManager = new DataManager([{a: 'Áèèleè', b:'Diacritic Character' }, {a: 'Vinet', b: 'Normal Character'}]);
+                    let predicate: Predicate = new Predicate('a', 'equal', 'Aeelee', true, true).
+                        and('b', 'equal', 'Diacritic Character', true, true);
+                    query = new Query().where(predicate);
+                    result = query.executeLocal(dataManager);
+                    done();
+                });
+                it('To check the complex predicate.', () => {
+                    let pred: Predicate = new Predicate('a', 'equal', 'aeelee', true, true);
+                    let predicate: Predicate = new Predicate('b', 'equal', 'Diacritic Character', true, true).and(pred);
+                    query = new Query().where(pred);
+                    result = query.executeLocal(dataManager);
                     expect(result.length).toBe(1);
                 });
             });

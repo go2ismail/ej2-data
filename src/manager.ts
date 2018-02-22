@@ -28,7 +28,7 @@ export class DataManager {
      * @param  {AdaptorOptions|string} adaptor?
      * @hidden
      */
-    constructor(dataSource?: DataOptions | JSON[], query?: Query, adaptor?: AdaptorOptions | string) {
+    constructor(dataSource?: DataOptions | JSON[] | Object[], query?: Query, adaptor?: AdaptorOptions | string) {
         if (!dataSource && !this.dataSource) {
             dataSource = [];
         }
@@ -132,7 +132,7 @@ export class DataManager {
         if (query.subQuery) {
             let from: string = query.subQuery.fromTable;
             let lookup: Object = query.subQuery.lookups;
-            let res: [{ [key: string]: Object[] }] = query.requiresCounts ? <[{ [key: string]: Object[] }]>result.result :
+            let res: [{ [key: string]: Object[] }] = query.isCountRequired ? <[{ [key: string]: Object[] }]>result.result :
                 <[{ [key: string]: Object[] }]>result;
 
             if (lookup && lookup instanceof Array) {
@@ -193,7 +193,7 @@ export class DataManager {
         return deffered.promise as Promise<Ajax>;
     }
     private static getDeferedArgs(query: Query, result: ReturnOption, args?: ReturnOption): Object {
-        if (query.requiresCounts) {
+        if (query.isCountRequired) {
             args.result = result.result;
             args.count = result.count;
             args.aggregates = result.aggregates;
@@ -267,7 +267,7 @@ export class DataManager {
             let virtualSelectRecords: string = 'virtualSelectRecords';
             let virtualRecords: { virtualSelectRecords: Object } =
                 (<{ [key: string]: { virtualSelectRecords: Object } }>data)[virtualSelectRecords];
-            if (query.requiresCounts) {
+            if (query.isCountRequired) {
                 count = result.count;
                 aggregates = result.aggregates;
                 result = result.result;
@@ -286,6 +286,7 @@ export class DataManager {
             this.beforeSend(ajax.httpRequest, ajax);
         };
         req = ajax.send();
+        (<Promise<Ajax>>req).catch((e: Error) => true); // to handle failure remote requests.        
         this.requests.push(ajax);
         if (isSelector) {
             let promise: Promise<Object[]>;
@@ -297,14 +298,14 @@ export class DataManager {
                     let pResult: ReturnOption = this.adaptor.processResponse(
                         result[0], this, query, this.requests[0].httpRequest, this.requests[0]);
                     let count: number = 0;
-                    if (query.requiresCounts) {
+                    if (query.isCountRequired) {
                         count = pResult.count;
                         pResult = pResult.result;
                     }
                     let cResult: ReturnOption = this.adaptor.processResponse(
                         result[1], this, query.subQuery, this.requests[1].httpRequest, this.requests[1]);
                     count = 0;
-                    if (query.subQuery.requiresCounts) {
+                    if (query.subQuery.isCountRequired) {
                         count = cResult.count;
                         cResult = cResult.result;
                     }
@@ -373,7 +374,7 @@ export class DataManager {
         ajax.onFailure = (e: string) => {
             deff.reject([{ error: e }]);
         };
-        ajax.send();
+        (<Promise<Ajax>>ajax.send()).catch((e: Error) => true); // to handle the failure requests.        
         return deff.promise;
     }
 
@@ -384,8 +385,6 @@ export class DataManager {
      * @param  {Query} query - Sets default query for the DataManager.
      */
     public insert(data: Object, tableName?: string | Query, query?: Query, position?: number): Object | Promise<Object> {
-        data = DataUtil.parse.replacer(data);
-
         if (tableName instanceof Query) {
             query = <Query>tableName;
             tableName = null;
@@ -433,7 +432,6 @@ export class DataManager {
      * @param  {Query} query - Sets default query for the DataManager.
      */
     public update(keyField: string, value: Object, tableName?: string | Query, query?: Query): Object | Promise<Object> {
-        value = DataUtil.parse.replacer(value, !this.dataSource.offline);
 
         if (tableName instanceof Query) {
             query = <Query>tableName;
@@ -477,8 +475,7 @@ export class DataManager {
         ajax.onFailure = (e: string) => {
             defer.reject([{ error: e }]);
         };
-        ajax.send();
-
+        (<Promise<Ajax>>ajax.send()).catch((e: Error) => true); // to handle the failure requests.
         return defer.promise as Promise<Ajax>;
     }
 }
