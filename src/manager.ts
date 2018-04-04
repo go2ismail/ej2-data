@@ -369,7 +369,7 @@ export class DataManager {
             this.beforeSend(ajax.httpRequest, ajax);
         };
         ajax.onSuccess = (data: string | Object, request: Ajax) => {
-            deff.resolve(this, [this.adaptor.processResponse(data, this, null, request.httpRequest, request, changes)]);
+            deff.resolve(this.adaptor.processResponse(DataUtil.parse.parseJson(data), this, null, request.httpRequest, request, changes));
         };
         ajax.onFailure = (e: string) => {
             deff.reject([{ error: e }]);
@@ -470,7 +470,7 @@ export class DataManager {
                 record = [];
             }
             record = this.adaptor.processResponse(DataUtil.parse.parseJson(record), this, null, request.httpRequest, request);
-            defer.resolve(this, [{ record: record, dataManager: this }]);
+            defer.resolve(record);
         };
         ajax.onFailure = (e: string) => {
             defer.reject([{ error: e }]);

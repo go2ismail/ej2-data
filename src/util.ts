@@ -206,7 +206,7 @@ export class DataUtil {
                 groupedArray[i].aggregates = res;
             }
         }
-        return groupedArray;
+        return jsonData.length && groupedArray || jsonData;
     }
 
     /**
@@ -289,12 +289,14 @@ export class DataUtil {
          * @param  {string|Function} field
          */
         min: (ds: Object[], field: string | Function) => {
+            let result: Object;
             let comparer: Function;
             if (typeof field === 'function') {
                 comparer = <Function>field;
                 field = null;
             }
-            return DataUtil.getObject(<string>field, DataUtil.getItemFromComparer(ds, <string>field, comparer || DataUtil.fnAscending));
+            result = DataUtil.getObject(<string>field, DataUtil.getItemFromComparer(ds, <string>field, comparer || DataUtil.fnAscending));
+            return isNullOrUndefined(result) ? null : result;
         },
         /**
          * Returns the max value of the data based on the field.
@@ -303,12 +305,15 @@ export class DataUtil {
          * @returns number
          */
         max: (ds: Object[], field: string | Function) => {
+            let result: Object;
             let comparer: Function;
             if (typeof field === 'function') {
                 comparer = <Function>field;
                 field = null;
             }
-            return DataUtil.getObject(<string>field, DataUtil.getItemFromComparer(ds, <string>field, comparer || DataUtil.fnDescending));
+            /* tslint:disable-next-line:no-any */
+            result = DataUtil.getObject(<string>field, DataUtil.getItemFromComparer(ds, <string>field, comparer || DataUtil.fnDescending));
+            return isNullOrUndefined(result) ? null : result;
         },
         /**
          * Returns the total number of true value present in the data based on the given boolean field name.
@@ -1627,12 +1632,16 @@ export class DataUtil {
                 } else if (/^(\d{4}\-\d\d\-\d\d([tT][\d:\.]*){1})([zZ]|([+\-])(\d\d):?(\d\d))?$/.test(<string>value)) {
                     let arr: string[] = (<string>dupValue).split(/[^0-9]/);
                     value = DataUtil.dateParse
-                    .toTimeZone(new Date(
+                        .toTimeZone(
+                            new Date(
                                 parseInt(arr[0], 10),
                                 parseInt(arr[1], 10) - 1,
                                 parseInt(arr[2], 10),
-                                parseInt(arr[3], 10), parseInt(arr[4], 10), parseInt(arr[5], 10)),
-                                DataUtil.serverTimezoneOffset, true);
+                                parseInt(arr[3], 10),
+                                parseInt(arr[4], 10),
+                                parseInt(arr[5], 10)
+                            ),
+                            DataUtil.serverTimezoneOffset, true);
                 }
             }
             return value;

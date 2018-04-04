@@ -454,6 +454,22 @@ describe('Json Adaptor', () => {
                 expect(result.length).toBe(4);
             });
         });
+        describe('insert in position', () => {
+            let record: Object = { OrderID: 10255, CustomerID: 'ANNARS', EmployeeID: 4, Freight: 22.33 };
+            let result: Object[];
+            beforeAll((done: Function) => {
+                dataManager = new DataManager(crudData, new Query(), new JsonAdaptor);
+                dataManager.insert(record, new Query(), new Query(), 1);
+                result = dataManager.executeLocal();
+                done();
+            });
+            it('check length of the data', () => {
+                expect(result.length).toBe(5);
+            });
+            it('check data added properly', () => {
+                expect((<{ [key: string]: any }>result[1])["OrderID"]).toBe(10255);
+            });
+        });
     });
 });
 
@@ -1346,6 +1362,27 @@ describe('OData Adaptor', () => {
             expect(this.result.length).toBe(0);
         });
     });
+    describe('Branch coverage', () => {
+        let odata: ODataAdaptor = new ODataAdaptor();
+        odata.generateDeleteRequest(undefined, {});
+        odata.generateInsertRequest(undefined, {});
+        odata.generateUpdateRequest(undefined, {});
+
+        it ('checked insert a record in a table', () => {
+            expect((<any>odata.insert(new DataManager({url: '/home'}), {order: 2}, 'order')).url).
+        toBe("/home/order");
+        });
+
+        it('checked update a record in a table', () =>{
+            expect(JSON.stringify(odata.update(new DataManager({url: '/home'}), 'order', 4, 'order'))).
+            toBe('{"type":"PUT","url":"/home/order(undefined)","data":"4","accept":"application/json;odata=light;q=1,application/json;odata=verbose;q=0.5"}');
+        });
+
+        it('check remove a record in a table', () => {
+            expect(JSON.stringify(odata.remove(new DataManager({url: '/home'}), 'order', 4, 'order'))).
+            toBe('{"type":"DELETE","url":"/home/order(4)"}');
+        });
+    });
     describe('xml format check - no count', () => {
         let request: JasmineAjaxRequest;
         beforeAll((done: Function) => {
@@ -1930,26 +1967,13 @@ describe('ODataV4 Adaptor', () => {
             request.respondWith({
                 'status': 200,
                 'contentType': 'multipart/mixed; boundary=batchresponse_5daab2ca-9817-42f6-a786-2ae12905c96b',
-                'responseText': '--batchresponse_5daab2ca-9817-42f6-a786-2ae12905c96b'
-                + 'Content-Type: multipart/mixed; boundary=changesetresponse_97fbbbfb-e199-48b2-9005-67cac1e30c87'
-
-                + '--changesetresponse_97fbbbfb-e199-48b2-9005-67cac1e30c87'
-                + 'Content-Type: application/http'
-                + 'Content-Transfer-Encoding: binary'
-                + 'Content-ID: 0'
-
-                + 'HTTP/1.1 200 OK'
-                + 'Content-Type: application/json; odata.metadata=minimal'
-                + 'OData-Version: 4.0'
-
-
-                + '{'
-                + '  "@odata.context":"http://localhost:49439/odata/$metadata#Orders/$entity","OrderID":10260,"CustomerID":"OTTIK","EmployeeID":345,"OrderDate":"1996-07-19T00:00:00+05:30","RequiredDate":"1996-08-16T00:00:00+05:30","ShippedDate":"1996-07-29T00:00:00+05:30","ShipVia":1,"Freight":55.09,'
-                + '  "ShipName":"Ottilies K\u00e4seladen","ShipAddress":"Mehrheimerstr. 369","ShipCity":"Test","ShipRegion":null,"ShipPostalCode":"50739","ShipCountry":"Germany"'
-                + '}'
-                + '--changesetresponse_97fbbbfb-e199-48b2-9005-67cac1e30c87--'
-                + '--batchresponse_5daab2ca-9817-42f6-a786-2ae12905c96b--'
-
+                'responseText': `{"Content-Type": "multipart/mixed",
+                "boundary":"changeset_b5af43a3-f35f-41a8-b048-201f404cfb4c --changeset_b5af43a3-f35f-41a8-b048-201f404cfb4c",
+                "Content-Type": "application/http", "Content-Transfer-Encoding": "binary PUT Table1Items(24) HTTP/1.1", "If-Match" : "*",
+                "Accept": "application/json;odata=light;q=1,application/json;odata=verbose;q=0.5", "Content-Id": 0,
+                "Content-Type": "application/json;", "charset": {"Id":24,"OrderID":23,"EmployeeID":4,"Freight":null,"City":null},
+                "CreatedBy":"TestUser","Created":"2015-11-06T11:28:19.211Z","ModifiedBy":"TestUser",
+                "Modified":"2015-11-06T11:28:19.211Z","RowVersion":"AAAAAAAANsg="}`
             })
             promise.then((e: any) => {
                 result = 'Batch request successfully';
@@ -1988,14 +2012,13 @@ describe('ODataV4 Adaptor', () => {
             request.respondWith({
                 'status': 200,
                 'contentType': 'application/json',
-                'responseText': '--batch_ea328062-14e7-44ae-a023-6f14a5bac3a2 Content-Type: multipart/mixed; ' +
-                'boundary=changeset_b5af43a3-f35f-41a8-b048-201f404cfb4c --changeset_b5af43a3-f35f-41a8-b048-201f404cfb4c ' +
-                'Content-Type: application/http Content-Transfer-Encoding: binary PUT Table1Items(24) HTTP/1.1 If-Match : * ' +
-                'Accept: application/json;odata=light;q=1,application/json;odata=verbose;q=0.5 Content-Id: 0 ' +
-                'Content-Type: application/json; charset=utf-8 {"Id":24,"OrderID":23,"EmployeeID":4,"Freight":null,"City":null,' +
-                '"CreatedBy":"TestUser","Created":"2015-11-06T11:28:19.211Z","ModifiedBy":"TestUser",' +
-                '"Modified":"2015-11-06T11:28:19.211Z","RowVersion":"AAAAAAAANsg="} ' +
-                '--changeset_b5af43a3-f35f-41a8-b048-201f404cfb4c-- --batch_ea328062-14e7-44ae-a023-6f14a5bac3a2-- '
+                'responseText': `{"Content-Type": "multipart/mixed",
+                "boundary":"changeset_b5af43a3-f35f-41a8-b048-201f404cfb4c --changeset_b5af43a3-f35f-41a8-b048-201f404cfb4c",
+                "Content-Type": "application/http", "Content-Transfer-Encoding": "binary PUT Table1Items(24) HTTP/1.1", "If-Match" : "*",
+                "Accept": "application/json;odata=light;q=1,application/json;odata=verbose;q=0.5", "Content-Id": 0,
+                "Content-Type": "application/json;", "charset": {"Id":24,"OrderID":23,"EmployeeID":4,"Freight":null,"City":null},
+                "CreatedBy":"TestUser","Created":"2015-11-06T11:28:19.211Z","ModifiedBy":"TestUser",
+                "Modified":"2015-11-06T11:28:19.211Z","RowVersion":"AAAAAAAANsg="} `
             });
             promise.then((e: any) => {
                 result = e;
@@ -2236,7 +2259,7 @@ describe('WebApi Adaptor', () => {
             request.respondWith({
                 'status': 200,
                 'contentType': 'application/json',
-                'responseText': 'Response from WebApiAdaptor'
+                'responseText': '{"Response from WebApiAdaptor": "responseText"}'
             });
             promise.then((e: any) => {
                 result = 'Batch request successfully';
@@ -2473,7 +2496,7 @@ describe('WebApi Adaptor', () => {
                 request.respondWith({
                     'status': 200,
                     'contentType': 'application/json',
-                    'responseText': 'Response from WebMethodAdaptor'
+                    'responseText': '{"Response from WebMethodAdaptor": "response Text"}'
                 });
                 promise.then((e: any) => {
                     result = 'Batch request successfully';
@@ -2872,7 +2895,7 @@ describe('WebApi Adaptor', () => {
                 request.respondWith({
                     'status': 200,
                     'contentType': 'application/json',
-                    'responseText': 'Response from CacheAdaptor'
+                    'responseText': '{"Response from CacheAdaptor": "response"}'
                 });
                 promise.then((e: any) => {
                     result = 'Batch request successfully';

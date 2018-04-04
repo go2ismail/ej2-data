@@ -309,7 +309,7 @@ export class JsonAdaptor extends Adaptor {
      * @param  {string} tableName?
      * @returns null
      */
-    public remove(dm: DataManager, keyField: string, value: Object, tableName?: string): Object[] {
+    public remove(dm: DataManager, keyField: string, value: Object, tableName?: string): Object {
         let ds: Object[] = dm.dataSource.json;
         let i: number;
         if (typeof value === 'object') {
@@ -1542,9 +1542,44 @@ export class RemoteSaveAdaptor extends JsonAdaptor {
     constructor() {
         super();
         setValue('beforeSend', UrlAdaptor.prototype.beforeSend, this);
-        setValue('insert', UrlAdaptor.prototype.insert, this);
-        setValue('update', UrlAdaptor.prototype.update, this);
-        setValue('remove', UrlAdaptor.prototype.remove, this);
+    }
+    public insert(dm: DataManager, data: Object, tableName: string): Object {
+        super.insert(dm, data, null, null, 0);
+        return {
+            url: dm.dataSource.insertUrl || dm.dataSource.crudUrl || dm.dataSource.url,
+            data: JSON.stringify({
+                value: data,
+                table: tableName,
+                action: 'insert'
+            })
+        };
+    }
+    public remove(dm: DataManager, keyField: string, value: Object, tableName?: string): Object {
+        super.remove(dm, keyField, value);
+        return {
+            type: 'POST',
+            url: dm.dataSource.removeUrl || dm.dataSource.crudUrl || dm.dataSource.url,
+            data: JSON.stringify({
+                key: value,
+                keyColumn: keyField,
+                table: tableName,
+                action: 'remove'
+            })
+        };
+    }
+    public update(dm: DataManager, keyField: string, value: Object, tableName: string): Object {
+        super.update(dm, keyField, value);
+        return {
+            type: 'POST',
+            url: dm.dataSource.updateUrl || dm.dataSource.crudUrl || dm.dataSource.url,
+            data: JSON.stringify({
+                value: value,
+                action: 'update',
+                keyColumn: keyField,
+                key: value[keyField],
+                table: tableName
+            })
+        };
     }
 
     /**

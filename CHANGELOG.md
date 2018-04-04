@@ -2,7 +2,21 @@
 
 ## [Unreleased]
 
-## 16.1.24 (2018-02-22)
+## 16.1.32 (2018-03-29)
+
+### DataManager
+
+#### Bug fixes
+
+- In `RemoteSaveAdaptor` insert and delete operations are not performed locally issue resolved.
+
+## 16.1.28-preview (2018-03-09)
+
+### DataManager
+
+#### Bug fixes
+
+- `saveChanges` & `update` method promise arguments changed.
 
 ## 15.4.30-preview (2018-02-14)
 
